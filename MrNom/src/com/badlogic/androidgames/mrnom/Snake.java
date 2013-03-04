@@ -21,16 +21,21 @@ public class Snake {
 	}
 
 	public void turnLeft() {
-		direction += 1;
-		if (direction > RIGHT)
-			direction = UP;
+		direction = LEFT;
 	}
 
 	public void turnRight() {
-		direction -= 1;
-		if (direction < UP)
-			direction = RIGHT;
+		direction = RIGHT;
 	}
+
+	public void turnUp() {
+		direction = UP;
+	}
+	
+	public void turnDown() {
+		direction = DOWN;
+	}
+	
 
 	public void eat() {
 		SnakePart end = parts.get(parts.size() - 1);
@@ -58,12 +63,12 @@ public class Snake {
 			head.x += 1;
 
 		if (head.x < 0)
-			head.x = 9;
-		if (head.x > 9)
+			head.x = 19;
+		if (head.x > 19)
 			head.x = 0;
 		if (head.y < 0)
-			head.y = 12;
-		if (head.y > 12)
+			head.y = 25;
+		if (head.y > 25)
 			head.y = 0;
 	}
 

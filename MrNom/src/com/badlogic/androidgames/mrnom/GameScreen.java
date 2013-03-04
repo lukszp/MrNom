@@ -13,27 +13,24 @@ import com.badlogic.androidgames.framework.Screen;
 public class GameScreen extends Screen {
 
 	enum GameState {
-		Ready,
-		Running,
-		Paused,
-		GameOver
+		Ready, Running, Paused, GameOver
 	}
-	
+
 	GameState state = GameState.Ready;
 	World world;
 	int oldScore = 0;
 	String score = "0";
-	
+
 	public GameScreen(Game game) {
 		super(game);
 		world = new World();
 	}
-	
+
 	@Override
 	public void update(float deltaTime) {
-		List <TouchEvent> touchEvents = game.getInput().getTouchEvents();
+		List<TouchEvent> touchEvents = game.getInput().getTouchEvents();
 		game.getInput().getKeyEvents();
-		
+
 		if (state == GameState.Ready)
 			updateReady(touchEvents);
 		if (state == GameState.Running)
@@ -42,14 +39,14 @@ public class GameScreen extends Screen {
 			updatePaused(touchEvents);
 		if (state == GameState.GameOver)
 			updateGameOver(touchEvents);
-		
+
 	}
-	
+
 	private void updateReady(List<TouchEvent> touchEvents) {
 		if (touchEvents.size() > 0)
 			state = GameState.Running;
 	}
-	
+
 	private void updateRunning(List<TouchEvent> touchEvents, float deltaTime) {
 		int len = touchEvents.size();
 		for (int i = 0; i < len; i++) {
@@ -64,30 +61,36 @@ public class GameScreen extends Screen {
 			}
 			if (event.type == TouchEvent.TOUCH_DOWN) {
 				if (event.x < 64 && event.y > 416) {
-					world.snake.turnLeft();					
+					world.snake.turnLeft();
+				}
+				if (event.x > 64 && event.x < 128 && event.y > 416) {
+					world.snake.turnUp();
 				}
 				if (event.x > 256 && event.y > 416) {
 					world.snake.turnRight();
 				}
+				if (event.x > 256 - 64 && event.x < 256 && event.y > 416) {
+					world.snake.turnDown();
+				}
 			}
 		}
-		
+
 		world.update(deltaTime);
-		
+
 		if (world.gameOver) {
-			if(Settings.soundEnabled)
+			if (Settings.soundEnabled)
 				Assets.bitten.play(1);
 			state = GameState.GameOver;
 		}
-		
+
 		if (oldScore != world.score) {
 			oldScore = world.score;
 			score = "" + oldScore;
 			if (Settings.soundEnabled)
 				Assets.eat.play(1);
-		}	
+		}
 	}
-	
+
 	private void updatePaused(List<TouchEvent> touchEvents) {
 		int len = touchEvents.size();
 		for (int i = 0; i < len; i++) {
@@ -126,13 +129,13 @@ public class GameScreen extends Screen {
 			}
 		}
 	}
-	
+
 	@Override
 	public void present(float deltaTime) {
 		Graphics g = game.getGraphics();
-		
+
 		g.drawPixmap(Assets.background, 0, 0);
-		
+
 		drawWorld(world);
 
 		if (state == GameState.Ready)
@@ -142,19 +145,20 @@ public class GameScreen extends Screen {
 		if (state == GameState.Paused)
 			drawPausedUI();
 		if (state == GameState.GameOver)
-			drawGameOverUI();		
-		
-		drawText(g, score, g.getWidth() / 2 - score.length()*20 / 2, g.getHeight() - 42);
-		
+			drawGameOverUI();
+
+		drawText(g, score, g.getWidth() / 2 - score.length() * 20 / 2,
+				g.getHeight() - 42);
+
 	}
-	
+
 	private void drawWorld(World world) {
 		Graphics g = game.getGraphics();
 		Snake snake = world.snake;
 		SnakePart head = snake.parts.get(0);
 		Stain stain = world.stain;
-		
-		//STAIN
+
+		// STAIN
 		Pixmap stainPixmap = null;
 		if (stain.type == Stain.TYPE_1)
 			stainPixmap = Assets.stain1;
@@ -162,22 +166,22 @@ public class GameScreen extends Screen {
 			stainPixmap = Assets.stain2;
 		if (stain.type == Stain.TYPE_3)
 			stainPixmap = Assets.stain3;
-		
-		int x = stain.x * 32;
-		int y = stain.y * 32;
-		
+
+		int x = stain.x * 16;
+		int y = stain.y * 16;
+
 		g.drawPixmap(stainPixmap, x, y);
-		
-		//SNAKE (WITHOUT HEAD)
+
+		// SNAKE (WITHOUT HEAD)
 		int len = snake.parts.size();
 		for (int i = 1; i < len; i++) {
 			SnakePart part = snake.parts.get(i);
-			x = part.x * 32;
-			y = part.y * 32;
-			g.drawPixmap(Assets.tail,x,y);
+			x = part.x * 16;
+			y = part.y * 16;
+			g.drawPixmap(Assets.tail, x, y);
 		}
-		
-		//HEAD
+
+		// HEAD
 		Pixmap headPixmap = null;
 		if (snake.direction == Snake.UP)
 			headPixmap = Assets.headUp;
@@ -188,75 +192,77 @@ public class GameScreen extends Screen {
 		if (snake.direction == Snake.RIGHT)
 			headPixmap = Assets.headRight;
 
-	
-		x = head.x * 32 + 16;
-		y = head.y * 32 + 16;
-		
-		g.drawPixmap(headPixmap, x - headPixmap.getWidth() / 2, y - headPixmap.getHeight() / 2);
-		
+		x = head.x * 16 + 8;
+		y = head.y * 16 + 8;
+
+		g.drawPixmap(headPixmap, x - headPixmap.getWidth() / 2,
+				y - headPixmap.getHeight() / 2);
+
 	}
 
 	private void drawReadyUI() {
 		Graphics g = game.getGraphics();
-		
+
 		g.drawPixmap(Assets.ready, 47, 100);
 		g.drawLine(0, 416, 480, 416, Color.BLACK);
 	}
-	
+
 	private void drawRunningUI() {
 		Graphics g = game.getGraphics();
-		
+
 		g.drawPixmap(Assets.buttons, 0, 0, 64, 128, 64, 64);
 		g.drawLine(0, 416, 480, 416, Color.BLACK);
 		g.drawPixmap(Assets.buttons, 0, 416, 64, 64, 64, 64);
+		g.drawPixmap(Assets.buttonsAddon, 64, 416, 0, 0, 64, 64);
 		g.drawPixmap(Assets.buttons, 256, 416, 0, 64, 64, 64);
+		g.drawPixmap(Assets.buttonsAddon, 256 - 64, 416, 64, 0, 64, 64);
 	}
-	
+
 	private void drawPausedUI() {
 		Graphics g = game.getGraphics();
-		
+
 		g.drawPixmap(Assets.pause, 80, 100);
-		g.drawLine(0, 416, 480, 416, Color.BLACK);		
+		g.drawLine(0, 416, 480, 416, Color.BLACK);
 	}
 
 	private void drawGameOverUI() {
 		Graphics g = game.getGraphics();
-		
+
 		g.drawPixmap(Assets.gameOver, 62, 100);
 		g.drawPixmap(Assets.buttons, 128, 200, 0, 128, 64, 64);
-		g.drawLine(0, 416, 480, 416, Color.BLACK);		
+		g.drawLine(0, 416, 480, 416, Color.BLACK);
 	}
-	
+
 	public void drawText(Graphics g, String line, int x, int y) {
 		int len = line.length();
 		for (int i = 0; i < len; i++) {
 			char character = line.charAt(i);
-			
+
 			if (character == ' ') {
 				x += 20;
 				continue;
 			}
-			
+
 			int srcX = 0;
 			int srcWidth = 0;
 			if (character == ' ') {
 				srcX = 200;
-				srcWidth = 10;				
+				srcWidth = 10;
 			} else {
 				srcX = (character - '0') * 20;
 				srcWidth = 20;
 			}
-			
+
 			g.drawPixmap(Assets.numbers, x, y, srcX, 0, srcWidth, 32);
 			x += srcWidth;
 		}
 	}
-	
+
 	@Override
 	public void pause() {
 		if (state == GameState.Running)
 			state = GameState.Paused;
-		
+
 		if (world.gameOver) {
 			Settings.addScore(world.score);
 			Settings.save(game.getFileIO());
@@ -266,13 +272,13 @@ public class GameScreen extends Screen {
 	@Override
 	public void resume() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void dispose() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 }
